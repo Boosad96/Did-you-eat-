@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { UserSettings } from '../types.ts';
 import { APP_LOGO } from '../constants.ts';
+import { Bell, ShieldCheck } from 'lucide-react';
+import { notificationService } from '../services/notificationService.ts';
 
 interface SetupProps {
   onComplete: (settings: UserSettings) => void;
@@ -11,6 +13,7 @@ interface SetupProps {
 const SetupScreen: React.FC<SetupProps> = ({ onComplete, initialSettings }) => {
   const [step, setStep] = useState(1);
   const [settings, setSettings] = useState<UserSettings>(initialSettings);
+  const [notifGranted, setNotifGranted] = useState(false);
 
   const nextStep = () => setStep(s => s + 1);
   const prevStep = () => setStep(s => s - 1);
@@ -27,8 +30,19 @@ const SetupScreen: React.FC<SetupProps> = ({ onComplete, initialSettings }) => {
     onComplete(settings);
   };
 
+  const handleRequestNotifications = async () => {
+    const granted = await notificationService.requestPermission();
+    setNotifGranted(granted);
+    if (granted) {
+      notificationService.sendNotification("Setup Complete!", "You will now receive meal reminders if you forget to check in.");
+      nextStep();
+    } else {
+      alert("Notifications are needed for the safety reminder system. Please enable them in your browser settings if you declined.");
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white">
+    <div className="flex-1 flex flex-col p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white overflow-y-auto">
       <div className="mb-10 mt-6 flex flex-col items-center text-center">
         <img src={APP_LOGO} alt="Logo" className="w-20 h-20 rounded-3xl shadow-xl mb-6" />
         <h1 className="text-3xl font-black text-slate-900">Welcome</h1>
@@ -70,12 +84,47 @@ const SetupScreen: React.FC<SetupProps> = ({ onComplete, initialSettings }) => {
                 />
               </div>
             </div>
+            <button 
+              onClick={nextStep}
+              className="w-full mt-4 py-5 px-6 rounded-[24px] bg-emerald-600 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
+            >
+              Next Step
+            </button>
           </div>
         )}
 
         {step === 2 && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 flex flex-col items-center text-center py-4">
+            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+              <Bell className="text-emerald-600" size={40} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-800">2. Enable Reminders</h2>
+            <p className="text-sm text-slate-500 font-medium">
+              We'll send you a notification if you forget to log a meal. This helps us ensure you're okay.
+            </p>
+            
+            <div className="bg-slate-50 p-6 rounded-[32px] w-full text-left space-y-4">
+              <div className="flex gap-3">
+                <ShieldCheck className="text-emerald-600 shrink-0" size={20} />
+                <p className="text-[11px] text-slate-600 font-bold leading-relaxed italic">
+                  "If you forget to open the app, we'll send a nudge every minute until you check in safely."
+                </p>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleRequestNotifications}
+              className="w-full py-5 px-6 rounded-[24px] bg-slate-900 text-white font-black uppercase text-xs tracking-widest active:scale-95 transition-transform"
+            >
+              Allow Notifications
+            </button>
+            <button onClick={nextStep} className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Skip for now</button>
+          </div>
+        )}
+
+        {step === 3 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
-            <h2 className="text-xl font-bold text-slate-800">2. Emergency Contact</h2>
+            <h2 className="text-xl font-bold text-slate-800">3. Emergency Contact</h2>
             <p className="text-sm text-slate-500 font-medium">Who should we alert if you don't respond?</p>
             
             <div className="space-y-4">
@@ -113,25 +162,23 @@ const SetupScreen: React.FC<SetupProps> = ({ onComplete, initialSettings }) => {
                 Your data stays strictly on this device. We never upload your personal contact information to any server.
               </p>
             </div>
+            
+            <div className="mt-10 flex gap-4">
+              <button 
+                onClick={prevStep}
+                className="flex-1 py-5 px-6 rounded-[24px] bg-slate-100 text-slate-600 font-black uppercase text-xs tracking-widest active:scale-95 transition-transform"
+              >
+                Back
+              </button>
+              <button 
+                onClick={handleFinish}
+                className="flex-[2] py-5 px-6 rounded-[24px] bg-emerald-600 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
+              >
+                Accept & Start
+              </button>
+            </div>
           </div>
         )}
-      </div>
-
-      <div className="mt-10 flex gap-4">
-        {step > 1 && (
-          <button 
-            onClick={prevStep}
-            className="flex-1 py-5 px-6 rounded-[24px] bg-slate-100 text-slate-600 font-black uppercase text-xs tracking-widest active:scale-95 transition-transform"
-          >
-            Back
-          </button>
-        )}
-        <button 
-          onClick={step === 2 ? handleFinish : nextStep}
-          className="flex-[2] py-5 px-6 rounded-[24px] bg-emerald-600 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
-        >
-          {step === 2 ? "Accept & Start" : "Next Step"}
-        </button>
       </div>
     </div>
   );

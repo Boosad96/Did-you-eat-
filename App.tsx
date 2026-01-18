@@ -1,6 +1,7 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { storageService } from './services/storageService.ts';
+import { notificationService } from './services/notificationService.ts';
 import { AppState, UserSettings, MealLog } from './types.ts';
 import { MISSING_WINDOW_MS, SMS_TEXT } from './constants.ts';
 import SetupScreen from './components/SetupScreen.tsx';
@@ -18,6 +19,7 @@ const App: React.FC = () => {
   const [showSosOverlay, setShowSosOverlay] = useState(false);
   const [showInstallPopup, setShowInstallPopup] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const lastNotificationTimeRef = useRef<number>(0);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -63,9 +65,23 @@ const App: React.FC = () => {
     if (!appState.settings.isSetupComplete) return;
     const now = Date.now();
     const yesLogs = appState.logs.filter(l => l.response === 'YES');
-    const lastLogTime = yesLogs.length > 0 ? Math.max(...yesLogs.map(l => l.timestamp)) : appState.logs[0]?.timestamp || now; 
+    const lastLogTime = yesLogs.length > 0 ? Math.max(...yesLogs.map(l => l.timestamp)) : (appState.logs[0]?.timestamp || now); 
     const deadline = lastLogTime + MISSING_WINDOW_MS;
     const diff = deadline - now;
+
+    // Logic for "Every 1 minute" reminder notification
+    // If we haven't checked in for at least 15 minutes, start the 1-minute reminder loop
+    const timeSinceLastLog = now - lastLogTime;
+    const oneMinute = 60 * 1000;
+    const gracePeriod = 15 * 60 * 1000; // Wait 15 mins after a meal before bothering them again
+
+    if (timeSinceLastLog > gracePeriod && (now - lastNotificationTimeRef.current) >= oneMinute) {
+      notificationService.sendNotification(
+        "Meal Check-in Reminder",
+        "It's been a while! Please tap to confirm you've eaten and are doing well."
+      );
+      lastNotificationTimeRef.current = now;
+    }
 
     if (diff <= 0) {
       const lastSms = appState.lastSmsSentAt || 0;
@@ -79,7 +95,8 @@ const App: React.FC = () => {
   }, [appState, showSosOverlay]);
 
   useEffect(() => {
-    const interval = setInterval(checkSafetyStatus, 15000);
+    // Check more frequently (every 10 seconds) to ensure the 1-minute reminder is timely
+    const interval = setInterval(checkSafetyStatus, 10000);
     checkSafetyStatus();
     return () => clearInterval(interval);
   }, [checkSafetyStatus]);
@@ -100,6 +117,7 @@ const App: React.FC = () => {
       logs: [newLog, ...prev.logs].slice(0, 100),
     }));
     setShowSosOverlay(false);
+    lastNotificationTimeRef.current = Date.now(); // Reset reminder timer on check-in
   };
 
   const handleInstallClick = async () => {

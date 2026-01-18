@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
-import { AppState } from '../types.ts';
+import React, { useState, useEffect, useMemo } from 'react';
+import { AppState, UserSettings } from '../types.ts';
 import { APP_LOGO } from '../constants.ts';
-import { Settings, CheckCircle2, ShieldCheck, History } from 'lucide-react';
+import { Settings, CheckCircle2, ShieldCheck, History, Bell, BellOff, Check, AlertCircle } from 'lucide-react';
+import { notificationService } from '../services/notificationService.ts';
 
 interface DashboardProps {
   appState: AppState;
@@ -13,11 +14,61 @@ interface DashboardProps {
 
 const DashboardScreen: React.FC<DashboardProps> = ({ appState, onAddLog, onOpenSettings, timeUntilAlert }) => {
   const [justSaved, setJustSaved] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(Notification.permission);
+
+  // Helper to determine which meal window we are currently in
+  const currentMealInfo = useMemo(() => {
+    const now = new Date();
+    const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    
+    const { breakfastTime, lunchTime, dinnerTime } = appState.settings;
+    
+    let type: 'Breakfast' | 'Lunch' | 'Dinner' = 'Breakfast';
+    if (currentTimeStr >= dinnerTime) {
+      type = 'Dinner';
+    } else if (currentTimeStr >= lunchTime) {
+      type = 'Lunch';
+    } else {
+      type = 'Breakfast';
+    }
+
+    // Check if this specific meal has been logged TODAY
+    const startOfToday = new Date().setHours(0, 0, 0, 0);
+    const alreadyLogged = appState.logs.some(log => 
+      log.mealType === type && 
+      log.response === 'YES' && 
+      log.timestamp >= startOfToday
+    );
+
+    return { type, alreadyLogged };
+  }, [appState.logs, appState.settings]);
+
   const lastConfirm = appState.logs.find(l => l.response === 'YES');
   const lastTimeStr = lastConfirm ? new Date(lastConfirm.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "No check-in";
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setNotifPermission(Notification.permission);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRequestPermission = async () => {
+    if (notifPermission === 'denied') {
+      alert("Notifications are blocked. Please enable them in your browser or site settings to receive reminders.");
+      return;
+    }
+    const granted = await notificationService.requestPermission();
+    setNotifPermission(granted ? 'granted' : 'denied');
+    if (granted) {
+      notificationService.sendNotification("Reminders Enabled", "Great! We'll nudge you if you forget to log a meal.");
+    }
+  };
+
   const handleCheckIn = () => {
-    onAddLog('Extra', 'YES');
+    if (currentMealInfo.alreadyLogged) return;
+    
+    onAddLog(currentMealInfo.type, 'YES');
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 3000);
   };
@@ -35,8 +86,35 @@ const DashboardScreen: React.FC<DashboardProps> = ({ appState, onAddLog, onOpenS
             </div>
           </div>
         </div>
-        <button onClick={onOpenSettings} className="p-3 bg-white rounded-2xl shadow-sm text-slate-400 active:scale-90 transition-transform"><Settings size={20} /></button>
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={handleRequestPermission}
+            className={`p-3 rounded-2xl shadow-sm transition-all active:scale-90 ${
+              notifPermission === 'granted' 
+                ? 'bg-white text-emerald-500' 
+                : 'bg-red-50 text-red-500 border border-red-100 animate-pulse'
+            }`}
+          >
+            {notifPermission === 'granted' ? <Bell size={20} /> : <BellOff size={20} />}
+          </button>
+          <button onClick={onOpenSettings} className="p-3 bg-white rounded-2xl shadow-sm text-slate-400 active:scale-90 transition-transform"><Settings size={20} /></button>
+        </div>
       </div>
+
+      {notifPermission !== 'granted' && (
+        <div className="px-6 mb-4">
+          <button 
+            onClick={handleRequestPermission}
+            className="w-full p-4 bg-red-600/10 border border-red-600/20 rounded-2xl flex items-center justify-between text-red-700"
+          >
+            <div className="flex items-center gap-3">
+              <AlertCircle size={18} />
+              <span className="text-xs font-bold text-left">Reminders are disabled. Tap to enable.</span>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-red-600 text-white px-3 py-1.5 rounded-full">Fix Now</span>
+          </button>
+        </div>
+      )}
 
       <div className="px-6 mb-4">
         <div className="bg-slate-900 rounded-2xl p-5 flex items-center justify-between shadow-lg">
@@ -65,16 +143,31 @@ const DashboardScreen: React.FC<DashboardProps> = ({ appState, onAddLog, onOpenS
             <img src={APP_LOGO} alt="Brand Icon" className="w-16 h-16 object-contain" />
           </div>
           
-          <h2 className="text-3xl font-black text-slate-800 mb-8 leading-tight">Ready for a check-in?</h2>
+          <h2 className="text-3xl font-black text-slate-800 mb-8 leading-tight">
+            {currentMealInfo.alreadyLogged ? "You're all set!" : "Ready for a check-in?"}
+          </h2>
           
           <button 
+            disabled={currentMealInfo.alreadyLogged}
             onClick={handleCheckIn}
-            className="w-full py-6 bg-emerald-600 text-white text-2xl font-black rounded-[28px] shadow-xl shadow-emerald-200 active:scale-95 transition-transform"
+            className={`w-full py-6 text-white text-2xl font-black rounded-[28px] shadow-xl transition-all flex items-center justify-center gap-3 ${
+              currentMealInfo.alreadyLogged 
+                ? 'bg-slate-200 text-slate-400 shadow-none cursor-not-allowed' 
+                : 'bg-emerald-600 shadow-emerald-200 active:scale-95'
+            }`}
           >
-            YES, I ATE
+            {currentMealInfo.alreadyLogged ? (
+              <><Check size={28} strokeWidth={4} /> {currentMealInfo.type.toUpperCase()} DONE</>
+            ) : (
+              `YES, I ATE ${currentMealInfo.type.toUpperCase()}`
+            )}
           </button>
           
-          <p className="mt-6 text-[10px] text-slate-400 font-bold uppercase tracking-widest">Safe & Private • Local Data</p>
+          <p className="mt-6 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            {currentMealInfo.alreadyLogged 
+              ? `Next check-in available after meal time`
+              : `Confirming your ${currentMealInfo.type.toLowerCase()} check-in`}
+          </p>
         </div>
       </div>
 
