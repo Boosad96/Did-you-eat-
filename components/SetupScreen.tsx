@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { UserSettings } from '../types';
+import { UserSettings } from '../types.ts';
+import { APP_LOGO } from '../constants.ts';
 
 interface SetupProps {
   onComplete: (settings: UserSettings) => void;
@@ -27,44 +28,45 @@ const SetupScreen: React.FC<SetupProps> = ({ onComplete, initialSettings }) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="mb-8 mt-4">
-        <h1 className="text-3xl font-bold text-slate-800">Welcome</h1>
-        <p className="text-slate-500 mt-2">Let's set up your daily care routine.</p>
+    <div className="flex-1 flex flex-col p-8 animate-in fade-in slide-in-from-bottom-4 duration-500 bg-white">
+      <div className="mb-10 mt-6 flex flex-col items-center text-center">
+        <img src={APP_LOGO} alt="Logo" className="w-20 h-20 rounded-3xl shadow-xl mb-6" />
+        <h1 className="text-3xl font-black text-slate-900">Welcome</h1>
+        <p className="text-slate-500 mt-2 font-medium">Let's set up your daily safety routine.</p>
       </div>
 
       <div className="flex-1">
         {step === 1 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-slate-700">1. Meal Reminder Times</h2>
-            <p className="text-sm text-slate-500 italic">When should we remind you to check in?</p>
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+            <h2 className="text-xl font-bold text-slate-800">1. Meal Reminder Times</h2>
+            <p className="text-sm text-slate-500 font-medium">When should we remind you to check in?</p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Breakfast</label>
+                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Breakfast</label>
                 <input 
                   type="time" 
                   value={settings.breakfastTime}
                   onChange={e => setSettings({...settings, breakfastTime: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full p-4 rounded-2xl border border-slate-100 bg-slate-50 text-lg font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Lunch</label>
+                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Lunch</label>
                 <input 
                   type="time" 
                   value={settings.lunchTime}
                   onChange={e => setSettings({...settings, lunchTime: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full p-4 rounded-2xl border border-slate-100 bg-slate-50 text-lg font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Dinner</label>
+                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Dinner</label>
                 <input 
                   type="time" 
                   value={settings.dinnerTime}
                   onChange={e => setSettings({...settings, dinnerTime: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full p-4 rounded-2xl border border-slate-100 bg-slate-50 text-lg font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 />
               </div>
             </div>
@@ -72,60 +74,63 @@ const SetupScreen: React.FC<SetupProps> = ({ onComplete, initialSettings }) => {
         )}
 
         {step === 2 && (
-          <div className="space-y-6">
-            <h2 className="text-xl font-semibold text-slate-700">2. Emergency Contact</h2>
-            <p className="text-sm text-slate-500">Who should we alert if you don't respond for 24 hours?</p>
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4">
+            <h2 className="text-xl font-bold text-slate-800">2. Emergency Contact</h2>
+            <p className="text-sm text-slate-500 font-medium">Who should we alert if you don't respond?</p>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1">Contact Name</label>
+                <label className="block text-[10px] font-bold text-slate-400 mb-1 uppercase tracking-widest">Contact Name</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. Mary (Daughter)"
+                  placeholder="e.g. Daughter (Mary)"
                   value={settings.contactName}
                   onChange={e => setSettings({...settings, contactName: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full p-4 rounded-2xl border border-slate-100 bg-slate-50 text-lg font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-1 flex justify-between">
+                <label className="block text-[10px] font-bold text-slate-400 mb-1 flex justify-between uppercase tracking-widest">
                   Phone Number 
-                  <span className="text-[10px] text-red-500 font-bold uppercase">Required: +Code</span>
+                  <span className="text-red-500 font-black">START WITH +</span>
                 </label>
                 <input 
                   type="tel" 
-                  placeholder="e.g. +15550000000"
+                  placeholder="+15551234567"
                   value={settings.contactPhone}
                   onChange={e => setSettings({...settings, contactPhone: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  className="w-full p-4 rounded-2xl border border-slate-100 bg-slate-50 text-lg font-bold focus:bg-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
                 />
               </div>
             </div>
 
-            <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl space-y-2 mt-4">
-              <p className="text-xs font-bold text-amber-900">Privacy First Approach</p>
-              <p className="text-[11px] text-amber-800 leading-relaxed">
-                We take your data seriously. This phone number is stored <strong>only</strong> on your device. By continuing, you agree to our privacy policy and allow the app to store this info locally.
+            <div className="p-5 bg-emerald-50 border border-emerald-100 rounded-3xl space-y-2 mt-4 shadow-sm">
+              <p className="text-xs font-black text-emerald-900 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                Privacy Protected
+              </p>
+              <p className="text-[11px] text-emerald-800/80 leading-relaxed font-medium">
+                Your data stays strictly on this device. We never upload your personal contact information to any server.
               </p>
             </div>
           </div>
         )}
       </div>
 
-      <div className="mt-8 flex gap-4">
+      <div className="mt-10 flex gap-4">
         {step > 1 && (
           <button 
             onClick={prevStep}
-            className="flex-1 py-4 px-6 rounded-2xl bg-slate-100 text-slate-600 font-semibold hover:bg-slate-200 transition-colors"
+            className="flex-1 py-5 px-6 rounded-[24px] bg-slate-100 text-slate-600 font-black uppercase text-xs tracking-widest active:scale-95 transition-transform"
           >
             Back
           </button>
         )}
         <button 
           onClick={step === 2 ? handleFinish : nextStep}
-          className="flex-[2] py-4 px-6 rounded-2xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 transition-shadow shadow-lg shadow-emerald-200"
+          className="flex-[2] py-5 px-6 rounded-[24px] bg-emerald-600 text-white font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-100 active:scale-95 transition-transform"
         >
-          {step === 2 ? "Accept & Finish" : "Next"}
+          {step === 2 ? "Accept & Start" : "Next Step"}
         </button>
       </div>
     </div>

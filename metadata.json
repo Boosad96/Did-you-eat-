@@ -1,8 +1,5 @@
 {
   "name": "Did You Eat?",
   "description": "A safety-focused daily care reminder app. It tracks meal consistency locally and provides a manual or automated SMS alert mechanism to notify a designated emergency contact if the user is inactive for 24 hours.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ]
+  "requestFramePermissions": []
 }
