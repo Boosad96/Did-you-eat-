@@ -27,9 +27,8 @@ const App: React.FC = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
     if (isMobile && !isStandalone) {
-      // Small delay for better UX
-      const timer = setTimeout(() => setShowInstallPopup(true), 1500);
-      return () => clearTimeout(timer);
+      // Immediate trigger for better conversion to installed app
+      setShowInstallPopup(true);
     }
   }, []);
 
