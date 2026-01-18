@@ -2,6 +2,7 @@
 {
   "short_name": "Did You Eat",
   "name": "Did You Eat? - Safety Reminder",
+  "description": "Daily meal check-in and 24h safety monitor.",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/3448/3448555.png",
@@ -17,6 +18,16 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#10b981",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "theme_color": "#064e3b",
+  "background_color": "#ffffff",
+  "shortcuts": [
+    {
+      "name": "Quick Check-in",
+      "short_name": "Check-in",
+      "description": "Log your most recent meal immediately",
+      "url": "/?action=checkin",
+      "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/3448/3448555.png", "sizes": "192x192" }]
+    }
+  ]
 }
