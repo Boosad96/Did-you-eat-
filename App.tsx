@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { storageService } from './services/storageService';
-import { AppState, UserSettings, MealLog } from './types';
-import { MISSING_WINDOW_MS, SMS_TEXT } from './constants';
-import SetupScreen from './components/SetupScreen';
-import DashboardScreen from './components/DashboardScreen';
-import SettingsScreen from './components/SettingsScreen';
-import InstallationPopup from './components/InstallationPopup';
+import { storageService } from './services/storageService.ts';
+import { AppState, UserSettings, MealLog } from './types.ts';
+import { MISSING_WINDOW_MS, SMS_TEXT } from './constants.ts';
+import SetupScreen from './components/SetupScreen.tsx';
+import DashboardScreen from './components/DashboardScreen.tsx';
+import SettingsScreen from './components/SettingsScreen.tsx';
+import InstallationPopup from './components/InstallationPopup.tsx';
 import { AlertTriangle, Send } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -19,7 +19,6 @@ const App: React.FC = () => {
   const [showInstallPopup, setShowInstallPopup] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
-  // Capture Native Install Prompt
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
@@ -30,17 +29,14 @@ const App: React.FC = () => {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  // Handle Home Screen Shortcuts
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('action') === 'checkin' && appState.settings.isSetupComplete) {
       addLog('Extra', 'YES');
-      // Clean URL
       window.history.replaceState({}, document.title, "/");
     }
   }, [appState.settings.isSetupComplete]);
 
-  // Initial Popup Logic
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
       || (window.navigator as any).standalone;
@@ -90,7 +86,7 @@ const App: React.FC = () => {
 
   const addLog = (meal: 'Breakfast' | 'Lunch' | 'Dinner' | 'Extra', response: 'YES' | 'NOT_YET') => {
     if (response === 'YES' && 'vibrate' in navigator) {
-      navigator.vibrate(50); // Haptic feedback
+      navigator.vibrate(50);
     }
 
     const newLog: MealLog = {
